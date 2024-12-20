@@ -28,6 +28,10 @@ const upload = multer({
 export const createCertificate = async (req, res) => {
     upload(req, res, async (err) => {
       if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          // File size exceeded: send 500 error
+          return res.status(500).json({ message: "File size exceeds 2MB limit" });
+        }
         return res.status(400).json({ message: "Error uploading image", error: err });
       }
       const { sr_no,name,issuedDate,issuedBy } = req.body;
@@ -71,22 +75,21 @@ export const createCertificate = async (req, res) => {
   };
 
 // Function to get all certificates
-export const getAllClients = async (req, res) => {
+export const getAllCertificates = async (req, res) => {
   try {
-    const clients = await Client.find();
-    const clientsWithCorrectImagePath = clients.map(client => {
-      const correctImagePath = client.imagePath ? client.imagePath.replace(/\\+/g, '/'): null;
+    const certificates = await Certificate.find().sort({ sr_no: 1 }); // Sort by sno in ascending order
+    const certificatesWithCorrectImagePath = certificates.map(certificate => {
+      const correctImagePath = certificate.imagePath.replace(/\\+/g, '/');
       return {
-        ...client.toObject(),
+        ...certificate.toObject(),
         imagePath: `${correctImagePath}`
       };
     });
-    res.status(200).json({ clients: clientsWithCorrectImagePath });
+    res.status(200).json({certificates:certificatesWithCorrectImagePath});
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving clients", error });
+    res.status(500).json({ message: "Error retrieving certificates", error });
   }
 };
-
 
 export const getSrno = async (req, res) => {
   try {
@@ -123,6 +126,13 @@ export const getCertificateById = async (req, res) => {
 export const updateCertificate = async (req, res) => {
   const { id } = req.params;
   upload(req, res, async (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        // File size exceeded: send 500 error
+        return res.status(500).json({ message: "File size exceeds 2MB limit" });
+      }
+      return res.status(400).json({ message: "Error uploading image", error: err });
+    }
   const { sr_no,name,issuedBy,issuedDate } = req.body; // New serial number
   
   const image = req.file;
@@ -177,3 +187,4 @@ export const deleteCertificate = async (req, res) => {
     res.status(500).json({ message: "Error deleting certificate", error });
   }
 };
+
