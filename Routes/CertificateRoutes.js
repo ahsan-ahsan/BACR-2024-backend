@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createCertificate,
-  getAllCertificates,
+  // getAllCertificates,
   getCertificateById,
   updateCertificate,
   deleteCertificate,
@@ -12,7 +12,7 @@ const router = express.Router();
 
 // Define routes
 router.post("/certificates", createCertificate);
-router.get("/certificates", getAllCertificates);
+// router.get("/certificates", getAllCertificates);
 router.get("/getSrno", getSrno);
 router.get("/certificate/:id", getCertificateById);
 router.put("/certificate/:id", updateCertificate);
