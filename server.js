@@ -78,5 +78,5 @@ app.get('/sitemap.xml', (req, res) => {
   res.sendFile(sitemapPath);
 });
 
-const PORT = "https://bacr-2024-backend-production.up.railway.app";
-app.listen(PORT, () => console.log(`Server running on${PORT}`));
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
