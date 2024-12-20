@@ -35,7 +35,7 @@ console.log("SS", process.env.SERVERNAME);
 export const mixpanel = Mixpanel.init("df6068b6944b69e78c4324ee5a9edeae");
 
 
-mongoose.connect('mongodb+srv://huzaifa:Izaan511@cluster1.6lzhfpl.mongodb.net/filimoSchool?retryWrites=true&w=majority&appName=Cluster1/ecommerce', {
+mongoose.connect('mongodb+srv://huzaifa:Izaan511@cluster0.6lzhfpl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/BACR', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('MongoDB connected')).catch(err => console.error(err));
