@@ -76,7 +76,7 @@ export const addSocialLinks = async (req, res) => {
         await socialLinks.save();
         return res.status(200).json({ message: 'Social Links updated successfully', socialLinks });
       } else {
-        socialLinks = new SocialLinks({ whatsapp, twitter, instagram, linkedin,youtube });
+        socialLinks = new SocialLinks({ whatsapp, facebook, instagram, linkedin,youtube });
         await socialLinks.save();
         return res.status(201).json({ message: 'Social Links saved successfully', socialLinks });
       }
