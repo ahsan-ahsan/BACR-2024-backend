@@ -253,7 +253,7 @@ export const getJobById = async (req, res) => {
       const correctImagePath = jobappb.resume.replace(/\\+/g, '/');
       return {
         ...jobappb.toObject(),
-        resume: `http://localhost:3000/${correctImagePath}`
+        resume: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
       };
     });
     if (!job) {

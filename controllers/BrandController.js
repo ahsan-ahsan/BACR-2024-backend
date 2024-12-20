@@ -73,8 +73,8 @@ export const getAllBrands = async (req, res) => {
       const correctImagePathb = brand.image ? brand.image.replace(/\\+/g, '/'): "upload/thumbnail.jpeg";
       return {
         ...brand.toObject(),
-        coverimage: `http://localhost:3000/${correctImagePath}`,
-        image: `http://localhost:3000/${correctImagePathb}`
+        coverimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+        image: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`
       };
     });
     res.status(200).json({brands:brandsWithCorrectImagePath});
@@ -91,8 +91,8 @@ export const getAllBrandsFront = async (req, res) => {
       const correctImagePathb = brand.image ? brand.image.replace(/\\+/g, '/'): "uploads/thumbnail.jpeg";
       return {
         ...brand.toObject(),
-        coverimage: `http://localhost:3000/${correctImagePath}`,
-        image: `http://localhost:3000/${correctImagePathb}`
+        coverimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+        image: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`
       };
     });
     res.status(200).json({brands:brandsWithCorrectImagePath});
@@ -120,8 +120,8 @@ export const getBrandById = async (req, res) => {
     // Modify the brand object
     const updatedBrand = {
       ...brand.toObject(),
-      coverimage: `http://localhost:3000/${correctImagePath}`,
-      image: `http://localhost:3000/${correctImagePathb}`,
+      coverimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+      image: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`,
     };
 
     res.status(200).json({ brand:updatedBrand });

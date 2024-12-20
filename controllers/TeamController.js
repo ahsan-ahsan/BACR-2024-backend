@@ -78,7 +78,7 @@ export const getAllTeamMembers = async (req, res) => {
       const imagePath = team.imagePath ? team.imagePath.replace(/\\+/g, '/') : null;
       return {
         ...team.toObject(),
-        imagePath: imagePath ? `http://localhost:3000/${imagePath}` : "http://localhost:3000/uploads/thumbnail.jpeg"
+        imagePath: imagePath ? `https://bacr-2024-backend-production.up.railway.app/${imagePath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg"
       };
     });
     res.status(200).json({ teams:teamsWithCorrectImagePath });
@@ -97,7 +97,7 @@ export const getTeamMemberById = async (req, res) => {
     const correctImagePath = teamMember.imagePath.replace(/\\+/g, '/');
     const updatedTeam = {
       ...teamMember._doc, // Extract all Team properties
-      imagePath: `http://localhost:3000/${correctImagePath}`,
+      imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
     };
     res.json({team:updatedTeam});
   } catch (error) {

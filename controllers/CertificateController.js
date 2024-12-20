@@ -76,7 +76,7 @@ export const getAllCertificates = async (req, res) => {
       const correctImagePath = certificate.imagePath.replace(/\\+/g, '/');
       return {
         ...certificate.toObject(),
-        imagePath: `http://localhost:3000/${correctImagePath}`
+        imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
       };
     });
     res.status(200).json({certificates:certificatesWithCorrectImagePath});
@@ -108,7 +108,7 @@ export const getCertificateById = async (req, res) => {
     const correctImagePath = certificate.imagePath.replace(/\\+/g, '/');
     const updatedCertificate = {
       ...certificate._doc, // Extract all certificate properties
-      imagePath: `http://localhost:3000/${correctImagePath}`,
+      imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
     };
     res.status(200).json({updatedCertificate});
   } catch (error) {

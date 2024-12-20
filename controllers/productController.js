@@ -326,8 +326,8 @@ try {
       return {
         ...product.toObject(),
         imagePath: correctImagePath
-          ? `http://localhost:3000/${correctImagePath}`
-          : "http://localhost:3000/uploads/thumbnail.jpeg", // Default placeholder
+          ? `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
+          : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default placeholder
       };
     });
 
@@ -389,8 +389,8 @@ const correctLogoPath = product.logo ? product.logo.replace(/\\+/g, '/') : null;
 
 const updatedProduct = {
   ...product._doc, // Extract all product properties
-  imagePath: correctImagePath ? `http://localhost:3000/${correctImagePath}` : "http://localhost:3000/uploads/thumbnail.jpeg", // Default image if no imagePath
-  logo: correctLogoPath ? `http://localhost:3000/${correctLogoPath}` : "http://localhost:3000/uploads/thumbnail.jpeg", // Default image if no imagePath
+  imagePath: correctImagePath ? `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default image if no imagePath
+  logo: correctLogoPath ? `https://bacr-2024-backend-production.up.railway.app/${correctLogoPath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default image if no imagePath
 };
 
 const productImages = await ProductImages.find({ product: id }).select('path -_id');
@@ -400,7 +400,7 @@ const imagesWithUrls = productImages.map(image => {
   const correctImagePath = image.path ? image.path.replace(/\\+/g, '/') : null;
   return {
     ...image._doc,  // Extract all image properties
-    path: correctImagePath ? `http://localhost:3000/${correctImagePath}` : "http://localhost:3000/uploads/thumbnail.jpeg", // Default image if no path
+    path: correctImagePath ? `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default image if no path
   };
 });
 

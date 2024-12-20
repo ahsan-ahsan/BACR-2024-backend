@@ -139,7 +139,7 @@ export const getCareers = async (req, res) => {
         const correctImagePath = career.resume.replace(/\\+/g, '/');
         return {
           ...career.toObject(),
-          resume: `http://localhost:3000/${correctImagePath}`
+          resume: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
         };
       });
       res.status(200).json({careers:careersWithCorrectImagePath});

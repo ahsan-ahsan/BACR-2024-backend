@@ -37,21 +37,22 @@ export const createClient = async (req, res) => {
       return res.status(400).json({ message: "Error: " + err.message });
     }
 
-    const { name } = req.body;
+    const { name,sr_no } = req.body;
     let image;
     if(req.file){
     image = req.file.path;
     }
-    if (!name) {
-      return res.status(400).json({ message: "Name and image are required" });
+    if (!name,!sr_no) {
+      return res.status(400).json({ message: "Name,Sr No and image are required" });
     }
-    const existingClient = await Client.findOne({ name });
+    const existingClient = await Client.findOne({ name,sr_no });
     if (existingClient) {
       return res.status(404).json({ message: 'Name already exists' });
     }
     try {
       const client = new Client({
         name,
+        sr_no,
         imagePath: image
       });
 
@@ -71,7 +72,7 @@ export const getAllClients = async (req, res) => {
       const correctImagePath = client.imagePath ? client.imagePath.replace(/\\+/g, '/'): null;
       return {
         ...client.toObject(),
-        imagePath: `http://localhost:3000/${correctImagePath}`
+        imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
       };
     });
     res.status(200).json({ clients: clientsWithCorrectImagePath });
@@ -94,6 +95,17 @@ export const getClientById = async (req, res) => {
     res.status(500).json({ message: "Error retrieving client", error });
   }
 };
+export const getSrno = async (req, res) => {
+  try {
+    const client =  await Client.find()
+    .sort({ sr_no: -1 }) // Sort in descending order
+    .limit(1)
+    .select("sr_no"); // Sort by sno in ascending order
+    res.status(200).json({client});
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving clients", error });
+  }
+};
 
 // Update client information by ID
 export const updateClient = async (req, res) => {
@@ -106,15 +118,31 @@ export const updateClient = async (req, res) => {
       return res.status(400).json({ message: "Error: " + err.message });
     }
 
-    const { name } = req.body;
+    const { name,sr_no } = req.body;
     const image = req.file;
 
     const updateData = {};
+    if (sr_no) {
+      const existingClient = await Client.find({ sr_no: { $gte: sr_no } }).sort({ sr_no: -1 });
+        if(existingClient.length > 0){
+          for (const client of existingClient) {
+      if (client.sr_no >= sr_no) {
+        // If the project's sr_no is greater than or equal to the new project's sr_no, increment it
+        await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no + 1 });
+      } else if (client.sr_no < sr_no) {
+        // If the project's sr_no is less than the new project's sr_no, decrement it
+        await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no - 1 });
+      }
+    //     await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
+      }
+      updateData.sr_no = sr_no;
+    }
+    }
     if (name) updateData.name = name;
     if (image) updateData.imagePath = image.path;
 
     try {
-      const updatedClient = await Client.findByIdAndUpdate(id, updateData, { new: true });
+      const updatedClient = await Client.findByIdAndUpdate(id,updateData, { new: true });
       if (!updatedClient) {
         return res.status(404).json({ message: "Client not found" });
       }

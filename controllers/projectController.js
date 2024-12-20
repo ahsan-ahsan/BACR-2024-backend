@@ -99,8 +99,8 @@ export const getAllProjects = async (req, res) => {
       const correctImagePathb = project.logo ? project.logo.replace(/\\+/g, '/') : "uploads/thumbnail.jpeg";
       return {
         ...project.toObject(),
-        mainimage: `http://localhost:3000/${correctImagePath}`,
-        logo: `http://localhost:3000/${correctImagePathb}`
+        mainimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+        logo: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`
       };
     });
     res.status(200).json({ projects:projectssWithCorrectImagePath });
@@ -136,8 +136,8 @@ export const getProjectById = async (req, res) => {
 
     const updatedProject = {
       ...project._doc,
-      mainimage: `http://localhost:3000/${correctImagePath}`,
-      logo: `http://localhost:3000/${logoPath}`,
+      mainimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+      logo: `https://bacr-2024-backend-production.up.railway.app/${logoPath}`,
     };
     
      // Process the images array and update paths for each image
@@ -147,7 +147,7 @@ export const getProjectById = async (req, res) => {
       const correctImagePath = image.path.replace(/\\+/g, '/');
       return {
         ...image._doc,  // Extract all image properties
-        path: `http://localhost:3000/${correctImagePath}`,  // Replace the path with a full URL
+        path: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,  // Replace the path with a full URL
       };
     });
     res.status(200).json({

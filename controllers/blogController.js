@@ -226,7 +226,7 @@ export const getRelatedBlogs = async (req, res) => {
 
         return {
           ...blog.toObject(),
-          imagePath: `http://localhost:3000/${correctImagePath}`,
+          imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
           tags,
         };
       })
@@ -283,7 +283,7 @@ export const getAllBlogs = async (req, res) => {
         
         return {
           ...blog.toObject(),
-          imagePath: `http://localhost:3000/${correctImagePath}`,
+          imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
           tags, // Include tags in the response          
         };
       })
@@ -318,7 +318,7 @@ export const getBlogById = async (req, res) => {
     
     const blogWithDetails = {
       ...blogs.toObject(),
-      imagePath: `http://localhost:3000/${correctImagePath}`,
+      imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
       tags, // Include tags in the response
     };
     
