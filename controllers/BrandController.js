@@ -1,18 +1,20 @@
 import multer from "multer";
 import Brand from "../models/Brand.js";
 import path from "path";
+import { BrandStorage } from "../utils/fileUploder.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/brands"),
-  filename: (req, file, cb) => {
-    // Replace spaces with underscores and remove any double spaces
-    const cleanName = file.originalname
-      .replace(/\s+/g, "_") // Replace spaces with underscores
-      .replace(/[^a-zA-Z0-9._-]/g, ""); // Remove any special characters except allowed ones
-    cb(null, Date.now() + "-" + cleanName);
-  },
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/brands"),
+//   filename: (req, file, cb) => {
+//     // Replace spaces with underscores and remove any double spaces
+//     const cleanName = file.originalname
+//       .replace(/\s+/g, "_") // Replace spaces with underscores
+//       .replace(/[^a-zA-Z0-9._-]/g, ""); // Remove any special characters except allowed ones
+//     cb(null, Date.now() + "-" + cleanName);
+//   },
+// });
 
+const storage =BrandStorage;
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 2MB limit
@@ -73,8 +75,8 @@ export const getAllBrands = async (req, res) => {
       const correctImagePathb = brand.image ? brand.image.replace(/\\+/g, '/'): "upload/thumbnail.jpeg";
       return {
         ...brand.toObject(),
-        coverimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
-        image: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`
+        coverimage: `${correctImagePath}`,
+        image: `${correctImagePathb}`
       };
     });
     res.status(200).json({brands:brandsWithCorrectImagePath});
@@ -87,12 +89,12 @@ export const getAllBrandsFront = async (req, res) => {
   try {
     const brands = await Brand.find({ category: { $ne: "subbrand" } });
     const brandsWithCorrectImagePath = brands.map(brand => {
-      const correctImagePath = brand.coverimage ? brand.coverimage.replace(/\\+/g, '/'): "uploads/thumbnail.jpeg";
-      const correctImagePathb = brand.image ? brand.image.replace(/\\+/g, '/'): "uploads/thumbnail.jpeg";
+      const correctImagePath = brand.coverimage ? brand.coverimage.replace(/\\+/g, '/'): `${process.env.url}/uploads/thumbnail.jpeg`;
+      const correctImagePathb = brand.image ? brand.image.replace(/\\+/g, '/'): `${process.env.url}/uploads/thumbnail.jpeg`;
       return {
         ...brand.toObject(),
-        coverimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
-        image: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`
+        coverimage: `${correctImagePath}`,
+        image: `${correctImagePathb}`
       };
     });
     res.status(200).json({brands:brandsWithCorrectImagePath});
@@ -112,16 +114,20 @@ export const getBrandById = async (req, res) => {
 
     const correctImagePath = brand.coverimage
       ? brand.coverimage.replace(/\\+/g, "/")
-      :'uploads/brands/1734469455885-herosec.png';
+      :`${process.env.url}/uploads/thumbnail.jpeg`;
     const correctImagePathb = brand.image
       ? brand.image.replace(/\\+/g, "/")
       : null;
+    const correctImagePathc = brand.logo
+      ? brand.logo.replace(/\\+/g, "/")
+      : `${process.env.url}/uploads/thumbnail.jpeg`;
 
     // Modify the brand object
     const updatedBrand = {
       ...brand.toObject(),
-      coverimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
-      image: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`,
+      coverimage: `${correctImagePath}`,
+      image: `${correctImagePathb}`,
+      logo: `${correctImagePathc}`,
     };
 
     res.status(200).json({ brand:updatedBrand });

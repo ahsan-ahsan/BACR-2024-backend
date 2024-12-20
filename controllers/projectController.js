@@ -2,11 +2,13 @@ import multer from "multer";
 import Project from "../models/Project.js";
 import ProjectImages from "../models/ProjectImages.js";
 import path from "path";
+import { ProjectStorage } from "../utils/fileUploder.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/projects"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/projects"),
+//   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+// });
+const storage =ProjectStorage;
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 2MB limit
@@ -99,8 +101,8 @@ export const getAllProjects = async (req, res) => {
       const correctImagePathb = project.logo ? project.logo.replace(/\\+/g, '/') : "uploads/thumbnail.jpeg";
       return {
         ...project.toObject(),
-        mainimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
-        logo: `https://bacr-2024-backend-production.up.railway.app/${correctImagePathb}`
+        mainimage: `${correctImagePath}`,
+        logo: `${correctImagePathb}`
       };
     });
     res.status(200).json({ projects:projectssWithCorrectImagePath });
@@ -131,13 +133,13 @@ export const getProjectById = async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
-    const correctImagePath = project.mainimage ? project.mainimage.replace(/\\+/g, '/') : "uploads/thumbnail.jpeg";
-    const logoPath = project.logo ? project.logo.replace(/\\+/g, '/') : "uploads/thumbnail.jpeg";
+    const correctImagePath = project.mainimage ? project.mainimage.replace(/\\+/g, '/') : `${process.env.url}/uploads/thumbnail.jpeg`;
+    const logoPath = project.logo ? project.logo.replace(/\\+/g, '/') : `${process.env.url}/uploads/thumbnail.jpeg`;
 
     const updatedProject = {
       ...project._doc,
-      mainimage: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
-      logo: `https://bacr-2024-backend-production.up.railway.app/${logoPath}`,
+      mainimage: `${correctImagePath}`,
+      logo: `${logoPath}`,
     };
     
      // Process the images array and update paths for each image
@@ -147,7 +149,7 @@ export const getProjectById = async (req, res) => {
       const correctImagePath = image.path.replace(/\\+/g, '/');
       return {
         ...image._doc,  // Extract all image properties
-        path: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,  // Replace the path with a full URL
+        path: `${correctImagePath}`,  // Replace the path with a full URL
       };
     });
     res.status(200).json({

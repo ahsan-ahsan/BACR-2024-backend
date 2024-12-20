@@ -1,16 +1,17 @@
 import Team from "../models/Team.js";
 import multer from "multer";
 import path from "path";
+import { TeamStorage } from "../utils/fileUploder.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/teams");  // Directory for storing uploaded images
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // Unique filename
-  }
-});
-
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "uploads/teams");  // Directory for storing uploaded images
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname));  // Unique filename
+//   }
+// });
+const storage =TeamStorage;
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 1MB limit
@@ -78,7 +79,7 @@ export const getAllTeamMembers = async (req, res) => {
       const imagePath = team.imagePath ? team.imagePath.replace(/\\+/g, '/') : null;
       return {
         ...team.toObject(),
-        imagePath: imagePath ? `https://bacr-2024-backend-production.up.railway.app/${imagePath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg"
+        imagePath: imagePath ? `${imagePath}` : `${process.env.url}/uploads/thumbnail.jpeg`
       };
     });
     res.status(200).json({ teams:teamsWithCorrectImagePath });
@@ -97,7 +98,7 @@ export const getTeamMemberById = async (req, res) => {
     const correctImagePath = teamMember.imagePath.replace(/\\+/g, '/');
     const updatedTeam = {
       ...teamMember._doc, // Extract all Team properties
-      imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+      imagePath: `${correctImagePath}`,
     };
     res.json({team:updatedTeam});
   } catch (error) {

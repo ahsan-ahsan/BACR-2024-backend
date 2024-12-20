@@ -9,16 +9,18 @@ import path from "path";
 import {mixpanel} from "../server.js";
 import fs from "fs";
 import mongoose from "mongoose";
+import { ProductStorage } from "../utils/fileUploder.js";
 
 // Configure multer for file uploads with a 1MB size limit
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/products");  // Directory for storing uploaded images
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // Unique filename
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "uploads/products");  // Directory for storing uploaded images
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname));  // Unique filename
+//   }
+// });
+const storage =ProductStorage;
 
 const upload = multer({
   storage,
@@ -136,7 +138,6 @@ export const createProduct = async (req, res) => {
   });
 };
 
-// Get all products
 export const getAllProducts = async (req, res) => {
   try {
     
@@ -183,10 +184,10 @@ export const getAllProducts = async (req, res) => {
       return {
         ...product.toObject(),
         imagePath: correctImagePath
-          ? `${process.env.url}/${correctImagePath}`
+          ? `${correctImagePath}`
           : `${process.env.url}/uploads/thumbnail.jpeg`, // Default placeholder
         brandFlags, // Add the brand flags (newProd, usedProd, spare) to the product
-        images: productImages.map((img) => `${process.env.url}/${img.path.replace(/\\+/g, '/')}`),
+        images: productImages.map((img) => `${img.path.replace(/\\+/g, '/')}`),
 
       };
     }));
@@ -230,8 +231,12 @@ export const getThreeProducts = async (req, res) => {
     const productsWithCorrectImagePath = await Promise.all(
       products.map(async (product) => {
         let correctImagePath = null;
+        let correctlogo = null;
         if (product.imagePath) {
           correctImagePath = product.imagePath.replace(/\\+/g, '/');
+        }
+        if (product.logo) {
+          correctlogo = product.logo.replace(/\\+/g, '/');
         }
 
         // Handle cases where brandId might be null or undefined
@@ -263,7 +268,10 @@ export const getThreeProducts = async (req, res) => {
         return {
           ...product.toObject(),
           imagePath: correctImagePath
-            ? `${process.env.url}/${correctImagePath}`
+            ? `${correctImagePath}`
+            : `${process.env.url}/uploads/thumbnail.jpeg`, // Default placeholder
+          logo: correctlogo
+            ? `${correctlogo}`
             : `${process.env.url}/uploads/thumbnail.jpeg`, // Default placeholder
         };
       })
@@ -322,12 +330,15 @@ try {
       if (product.imagePath) {
         correctImagePath = product.imagePath.replace(/\\+/g, '/');
       }
-
+      if (product.logo) {
+      correctLogoPath = product.logo.replace(/\\+/g, '/');
+      }
       return {
         ...product.toObject(),
         imagePath: correctImagePath
-          ? `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
-          : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default placeholder
+          ? `${correctImagePath}`
+          : "http://localhost:3000/uploads/thumbnail.jpeg", // Default placeholder
+          logo: correctLogoPath ? `${correctLogoPath}` : "http://localhost:3000/uploads/thumbnail.jpeg", // Default image if no imagePath
       };
     });
 

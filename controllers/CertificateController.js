@@ -1,11 +1,13 @@
 import Certificate from "../models/Certificate.js";
 import multer from "multer";
 import path from "path";
+import { AssetStorage } from "../utils/fileUploder.js";
 // Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/certificates"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/certificates"),
+//   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+// });
+const storage = AssetStorage;
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 2MB limit
@@ -69,21 +71,22 @@ export const createCertificate = async (req, res) => {
   };
 
 // Function to get all certificates
-export const getAllCertificates = async (req, res) => {
+export const getAllClients = async (req, res) => {
   try {
-    const certificates = await Certificate.find().sort({ sr_no: 1 }); // Sort by sno in ascending order
-    const certificatesWithCorrectImagePath = certificates.map(certificate => {
-      const correctImagePath = certificate.imagePath.replace(/\\+/g, '/');
+    const clients = await Client.find();
+    const clientsWithCorrectImagePath = clients.map(client => {
+      const correctImagePath = client.imagePath ? client.imagePath.replace(/\\+/g, '/'): null;
       return {
-        ...certificate.toObject(),
-        imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
+        ...client.toObject(),
+        imagePath: `${correctImagePath}`
       };
     });
-    res.status(200).json({certificates:certificatesWithCorrectImagePath});
+    res.status(200).json({ clients: clientsWithCorrectImagePath });
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving certificates", error });
+    res.status(500).json({ message: "Error retrieving clients", error });
   }
 };
+
 
 export const getSrno = async (req, res) => {
   try {

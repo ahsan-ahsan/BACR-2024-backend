@@ -9,19 +9,21 @@ import path from "path";
 import nodemailer from "nodemailer";
 import schedule from "node-schedule";
 import xml2js from 'xml2js';
+import { BlogStorage } from "../utils/fileUploder.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (file.fieldname === 'image') {
-      cb(null, 'uploads/blogs'); // Save images in blogs folder
-    } else if (file.fieldname === 'email') {
-      cb(null, 'uploads/temp'); // Save Excel files in temporary storage
-    }
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
-  },
-});
+const storage =BlogStorage;
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     if (file.fieldname === 'image') {
+//       cb(null, 'uploads/blogs'); // Save images in blogs folder
+//     } else if (file.fieldname === 'email') {
+//       cb(null, 'uploads/temp'); // Save Excel files in temporary storage
+//     }
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+//   },
+// });
 
 
 const upload = multer({
@@ -59,7 +61,7 @@ export const createBlog = async (req, res) => {
     
     let { name,url, description,categoryId,tags, focus_keys,alt_text,caption_img,meta_desc,meta_title,can_url,status,schedule_time,soc_tags,excerpt } = req.body;
     const { files } = req;
-    const image = files.image[0];
+    const image = files?.image[0];
     
 
     if (!name || !description || !image) {
@@ -104,24 +106,59 @@ export const createBlog = async (req, res) => {
       //   emailString = emailArray.join(","); // Save as comma-separated string
       // }
       // const emails = await extractEmailsFromExcel(excelFile.path);
-
-      const excelFile = files.email[0];
-      const excelBuffer = fs.readFileSync(excelFile.path);
+      let excelFile,emailString;
+      if(files.email){
+       excelFile = files?.email[0];
+    
+      const excelBuffer = fs.readFileSync(excelFile?.path);
       const { validEmails, invalidEmails } = extractEmailsFromExcel(excelBuffer);
 
       
       if (validEmails.length === 0) {
         return res.status(400).json({ message: "No valid emails found in the Excel file." });
       }
-      const emailString = validEmails.join(',');
-      
+       emailString = validEmails.join(',');
+             
+//  // Send email notifications to each email in the list
+ const transporter = nodemailer.createTransport({
+  // host: process.env.MAIL_HOST,
+  host: 'sandbox.smtp.mailtrap.io',
+  port: 587,
+  secure: false, // use SSL
+  auth: {
+    user: 'bc706f92abe244',
+    pass: 'daf333647f2f6a',
+  }
+});
+
+
+
+const mailOptions = {
+  from: 'namirafatima1991@gmail.com',  // Your Gmail address
+  subject: 'New Blog Post: ' + blog.name,
+  html: `
+    <h1>New Blog Post</h1>
+    <p>A new blog post has been created: <strong>${blog.name}</strong></p>
+    <p>Click here to read more: <a href="${blog.url}">${blog.url}</a></p>
+  `,
+};
+
+// Send email to each recipient
+const emailPromises = emailString.split(',').map((email) => {
+  return transporter.sendMail({ ...mailOptions, to: email });
+});
+      // Wait for all emails to be sent
+      await Promise.all(emailPromises);
+      fs.unlinkSync(excelFile.path);
+
+    }
     try {
       const blog = new Blog({
         name,
         url,
         categoryId,
         description,
-        imagePath: image.path,
+        imagePath: image?.path ? image?.path :"",
         emails: emailString,
         focus_key:focuskeyString,
         alt_text,
@@ -161,47 +198,14 @@ export const createBlog = async (req, res) => {
     // Schedule the post
     await schedulePost(postId, schedule_time); // Assuming schedulePost returns a Promise
   } catch (error) {
-    console.error("Error scheduling the post:", error);
+    console.error("Error scheduling the post:", error.message);
   }
       }
-      
-//  // Send email notifications to each email in the list
- const transporter = nodemailer.createTransport({
-  // host: process.env.MAIL_HOST,
-  host: 'sandbox.smtp.mailtrap.io',
-  port: 587,
-  secure: false, // use SSL
-  auth: {
-    // user: process.env.USERNAME,
-    // pass: process.env.PASSWORD,
-    user: 'bc706f92abe244',
-    pass: 'daf333647f2f6a',
-  }
-});
 
-
-
-const mailOptions = {
-  from: 'namirafatima1991@gmail.com',  // Your Gmail address
-  subject: 'New Blog Post: ' + blog.name,
-  html: `
-    <h1>New Blog Post</h1>
-    <p>A new blog post has been created: <strong>${blog.name}</strong></p>
-    <p>Click here to read more: <a href="${blog.url}">${blog.url}</a></p>
-  `,
-};
-
-// Send email to each recipient
-const emailPromises = emailString.split(',').map((email) => {
-  return transporter.sendMail({ ...mailOptions, to: email });
-});
-      // Wait for all emails to be sent
-      await Promise.all(emailPromises);
       await generateSitemap();
-      fs.unlinkSync(excelFile.path);
       res.status(201).json({ message: "Blog created successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Error saving blog", error });
+      res.status(500).json({ message: "Error saving blog"+ error.message });
     }
   });
 };
@@ -283,7 +287,7 @@ export const getAllBlogs = async (req, res) => {
         
         return {
           ...blog.toObject(),
-          imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+          imagePath: `${correctImagePath}`,
           tags, // Include tags in the response          
         };
       })
@@ -310,7 +314,7 @@ export const getBlogById = async (req, res) => {
       return res.status(404).json({ message: 'Blog not found' });
     }
     
-    const correctImagePath = blogs.imagePath ? blogs.imagePath.replace(/\\+/g, '/') : "upload/thumbnail.jpeg";
+    const correctImagePath = blogs.imagePath ? blogs.imagePath.replace(/\\+/g, '/') : `${process.env.url}/upload/thumbnail.jpeg`;
     
     // Fetch associated tags using BlogTag bridge
     const blogTags = await BlogTag.find({ blogId: blogs._id }).populate('tagId');
@@ -318,7 +322,7 @@ export const getBlogById = async (req, res) => {
     
     const blogWithDetails = {
       ...blogs.toObject(),
-      imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+      imagePath: `${correctImagePath}`,
       tags, // Include tags in the response
     };
     

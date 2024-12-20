@@ -4,12 +4,13 @@ import nodemailer from "nodemailer";
 import JobApp from '../models/JobApp.js';
 import path from "path";
 import Department from "../models/Department.js";
+import { JobStorage } from "../utils/fileUploder.js";
 
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/jobs"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
+const storage = JobStorage;
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/jobs"),
+//   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+// });
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 1MB limit
@@ -253,7 +254,7 @@ export const getJobById = async (req, res) => {
       const correctImagePath = jobappb.resume.replace(/\\+/g, '/');
       return {
         ...jobappb.toObject(),
-        resume: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
+        resume: `${correctImagePath}`
       };
     });
     if (!job) {
