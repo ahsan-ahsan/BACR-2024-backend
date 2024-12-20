@@ -43,7 +43,7 @@ mongoose.connect('mongodb+srv://huzaifa:Izaan511@cluster0.6lzhfpl.mongodb.net/?r
 app.use(express.json());
 
 app.use(cors({
-  origin: ["http://localhost:3001"], // Allow all origins (replace '*' with specific origins if needed)
+  origin: "*", // Allow all origins (replace '*' with specific origins if needed)
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
 }));
