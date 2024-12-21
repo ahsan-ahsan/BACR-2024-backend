@@ -49,9 +49,12 @@ export const createTeamMember = async (req, res) => {
     if (existingMember) {
       return res.status(404).json({ message: 'Email already exists' });
     }
-  if (!name  || !email ) {
+  if (!name  || !email || bio ) {
     return res.status(400).json({ message: 'Name and Email Field are Required' });
   }
+  // if (!bio ) {
+  //   return res.status(400).json({ message: 'Name and Email Field are Required' });
+  // }
 
   try {
   
@@ -107,14 +110,16 @@ export const getTeamMemberById = async (req, res) => {
 };
 
 // Update a team member by ID
-export const updateTeamMember = async (req, res) => {
+export const  updateTeamMember = async (req, res) => {
   upload(req, res, async (err) => {
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ message: "File upload error: " + err.message });
     } else if (err) {
       return res.status(400).json({ message: "Error: " + err.message });
     }
-  const { name, designation, email,linkedIn } = req.body;
+  const { name, designation, email,bio } = req.body;
+  console.log("updated fields",req.body);
+  
   const image = req.file;
 
   try {
@@ -127,6 +132,7 @@ export const updateTeamMember = async (req, res) => {
     if (designation) teamMember.designation = designation;
     if (email) teamMember.email = email;
     if (image) teamMember.imagePath = image.path;    
+    if (bio) teamMember.bio = bio;    
 
     await teamMember.save();
     res.json({ message: 'Team member updated successfully', teamMember });
