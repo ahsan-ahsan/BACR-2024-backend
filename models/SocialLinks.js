@@ -7,7 +7,7 @@ const socialSchema = new mongoose.Schema(
     instagram: { type: String },    
     facebook: { type: String },    
     whatsapp: { type: String },    
-    whatsappno: { type: Number },    
+    whatsappno: { type: String },    
     telephone1: { type: String },    
     telephone2: { type: String },    
     email: { type: String },    
