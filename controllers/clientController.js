@@ -1,16 +1,18 @@
 import Client from "../models/Client.js";
 import multer from "multer";
 import path from "path";
+import { AssetStorage } from "../utils/fileUploder.js";
 
 // Configure multer for file uploads with a 1MB size limit
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/clients");  // Directory for storing uploaded images
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // Unique filename
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "uploads/clients");  // Directory for storing uploaded images
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname));  // Unique filename
+//   }
+// });
+const storage = AssetStorage;
 
 const upload = multer({
   storage,
@@ -34,14 +36,29 @@ export const createClient = async (req, res) => {
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ message: "File upload error: " + err.message });
     } else if (err) {
-      return res.status(400).json({ message: "Error: " + err.message });
+      return res.status(400).json({ message: "Error: " + err + process.env.CLOUDNAME});
     }
 
     const { name,sr_no } = req.body;
-    let image;
-    if(req.file){
-    image = req.file.path;
+    if (sr_no) {
+      const existingClient = await Client.find({ sr_no: { $gte: sr_no } }).sort({ sr_no: -1 });
+        if(existingClient.length > 0){
+          for (const client of existingClient) {
+      if (client.sr_no >= sr_no) {
+        // If the project's sr_no is greater than or equal to the new project's sr_no, increment it
+        await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no + 1 });
+      } else if (client.sr_no < sr_no) {
+        // If the project's sr_no is less than the new project's sr_no, decrement it
+        await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no - 1 });
+      }
+    //     await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
+      }
     }
+    }
+    let image;
+    // if(req.file){
+    image =  req.file?.path || "";;
+    // }
     if (!name,!sr_no) {
       return res.status(400).json({ message: "Name,Sr No and image are required" });
     }
@@ -72,7 +89,7 @@ export const getAllClients = async (req, res) => {
       const correctImagePath = client.imagePath ? client.imagePath.replace(/\\+/g, '/'): null;
       return {
         ...client.toObject(),
-        imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
+        imagePath: `${correctImagePath}`
       };
     });
     res.status(200).json({ clients: clientsWithCorrectImagePath });

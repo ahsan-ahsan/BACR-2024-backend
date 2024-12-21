@@ -3,11 +3,9 @@ import Career from '../models/Career.js';
 import Department from '../models/Department.js';
 import nodemailer from "nodemailer";
 import path from 'path';
+import { CareerStorage } from '../utils/fileUploder.js';
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/career"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
+const storage = CareerStorage;
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 2MB limit
@@ -139,7 +137,7 @@ export const getCareers = async (req, res) => {
         const correctImagePath = career.resume.replace(/\\+/g, '/');
         return {
           ...career.toObject(),
-          resume: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`
+          resume: `${correctImagePath}`
         };
       });
       res.status(200).json({careers:careersWithCorrectImagePath});

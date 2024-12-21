@@ -46,7 +46,10 @@ router.post("/assign-role", async (req, res) => {
   const { userId, roleId, moduleIds } = req.body;
   try {
     const user = await User.findById(userId);
-    const role = await Role.findById(roleId);
+    let role = await Role.findOne({ name: roleId });
+    if (!role) {
+      role = await Role.create({ name: roleId });
+    }
     const modules = await Module.find({ _id: { $in: moduleIds } });
 
     if (!user || !role) {

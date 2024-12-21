@@ -1,13 +1,13 @@
 import Certificate from "../models/Certificate.js";
 import multer from "multer";
 import path from "path";
-import { AssetStorage } from "../utils/fileUploder.js";
+import { CertificateStorage } from "../utils/fileUploder.js";
 // Configure multer for image uploads
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => cb(null, "uploads/certificates"),
 //   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 // });
-const storage = AssetStorage;
+const storage = CertificateStorage;
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 2MB limit
@@ -35,7 +35,20 @@ export const createCertificate = async (req, res) => {
         return res.status(400).json({ message: "Error uploading image", error: err });
       }
       const { sr_no,name,issuedDate,issuedBy } = req.body;
-      
+      if (sr_no) {
+        const existingCertificates = await Certificate.find({ sr_no: { $gte: sr_no } }).sort({ sr_no: -1 });
+        if(existingCertificates.length > 0){
+          for (const certificate of existingCertificates) {
+      if (certificate.sr_no >= sr_no) {
+        await Certificate.findByIdAndUpdate(certificate._id, { sr_no: certificate.sr_no + 1 });
+      } else if (certificate.sr_no < sr_no) {
+        // If the certificate's sr_no is less than the new certificate's sr_no, decrement it
+        await Certificate.findByIdAndUpdate(certificate._id, { sr_no: certificate.sr_no - 1 });
+      }
+  
+      }
+      }
+    }
       const image = req.file;
   
       // Check if the required fields are provided
@@ -114,14 +127,13 @@ export const getCertificateById = async (req, res) => {
     const correctImagePath = certificate.imagePath.replace(/\\+/g, '/');
     const updatedCertificate = {
       ...certificate._doc, // Extract all certificate properties
-      imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+      imagePath: `${correctImagePath}`,
     };
     res.status(200).json({updatedCertificate});
   } catch (error) {
     res.status(500).json({ message: "Error retrieving certificate", error });
   }
 };
-
 // Function to update a certificate
 export const updateCertificate = async (req, res) => {
   const { id } = req.params;

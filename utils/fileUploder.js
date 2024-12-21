@@ -25,6 +25,19 @@ const AssetStorage = new CloudinaryStorage({
     ],
   },
 });
+const CareerStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: "bacr/career",
+      resource_type: "auto",
+      allowed_formats: [
+        "jpg",
+        "jpeg",
+        "png",
+        "webp",
+      ],
+    },
+  });
 const BlogStorage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -90,21 +103,21 @@ const TeamStorage = new CloudinaryStorage({
       ],
     },
   });
-const CareerStorage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: "bacr/careers",
-      resource_type: "auto",
-      allowed_formats: [
-        "jpg",
-        "jpeg",
-        "png",
-        "webp",
-        "pdf",
-        "doc"
-      ],
-    },
-  });
+// const CareerStorage = new CloudinaryStorage({
+//     cloudinary,
+//     params: {
+//       folder: "bacr/careers",
+//       resource_type: "auto",
+//       allowed_formats: [
+//         "jpg",
+//         "jpeg",
+//         "png",
+//         "webp",
+//         "pdf",
+//         "doc"
+//       ],
+//     },
+//   });
 
 const JobStorage = new CloudinaryStorage({
     cloudinary,
@@ -136,4 +149,4 @@ const BrandStorage = new CloudinaryStorage({
   });
 
 
-export { ProductStorage, cloudinary,BrandStorage,BlogStorage,CareerStorage, CertificateStorage, AssetStorage,ProjectStorage,TeamStorage,JobStorage };
+export { ProductStorage, cloudinary,BrandStorage,BlogStorage, CertificateStorage, AssetStorage,ProjectStorage,TeamStorage,JobStorage,CareerStorage };

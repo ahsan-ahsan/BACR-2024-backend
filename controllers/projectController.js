@@ -52,6 +52,21 @@ export const createProject = async (req, res) => {
       await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
     }
     const updateData = {name,location,client,category,description,sr_no};
+    if (sr_no) {
+      const existingProjects = await Project.find({ sr_no: { $gte: sr_no } }).sort({ sr_no: -1 });
+        if(existingProjects.length > 0){
+          for (const project of existingProjects) {
+      if (project.sr_no >= sr_no) {
+        // If the project's sr_no is greater than or equal to the new project's sr_no, increment it
+        await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
+      } else if (project.sr_no < sr_no) {
+        // If the project's sr_no is less than the new project's sr_no, decrement it
+        await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no - 1 });
+      }
+    //     await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
+      }
+    }
+    }
     const mainimage = req.files['mainImage'] ? req.files['mainImage'][0] : null;
     const logo = req.files['logo'] ? req.files['logo'][0] : null;
     if (mainimage) {

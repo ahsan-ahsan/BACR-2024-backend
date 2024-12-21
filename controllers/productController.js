@@ -285,6 +285,82 @@ export const getThreeProducts = async (req, res) => {
   }
 };
 
+export const getProductById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const today = new Date();
+    const sixtyDaysAgo = new Date(today);
+    sixtyDaysAgo.setDate(today.getDate() - 60);
+
+    const product = await Product.findOne({
+      _id: id,
+      createdAt: { $gte: sixtyDaysAgo }, // Ensures the product was created in the last 60 days
+    }).populate("brandId","name");
+
+
+if (!product) {
+  return res.status(404).json({ message: "Product not found" });
+}
+
+// Process imagePath only after confirming the product is found
+const correctImagePath = product.imagePath ? product.imagePath.replace(/\\+/g, '/') : null;
+const correctLogoPath = product.logo ? product.logo.replace(/\\+/g, '/') : null;
+
+const updatedProduct = {
+  ...product._doc, // Extract all product properties
+  imagePath: correctImagePath ? `${correctImagePath}` : `${process.env.url}/uploads/thumbnail.jpeg`, // Default image if no imagePath
+  logo: correctLogoPath ? `${correctLogoPath}` : `${process.env.url}/uploads/thumbnail.jpeg`, // Default image if no imagePath
+};
+
+const productImages = await ProductImages.find({ product: id }).select('path -_id');
+
+// Process the images and adjust their paths
+const imagesWithUrls = productImages.map(image => {
+  const correctImagePath = image.path ? image.path.replace(/\\+/g, '/') : null;
+  return {
+    ...image._doc,  // Extract all image properties
+    path: correctImagePath ? `${correctImagePath}` : `${process.env.url}/uploads/thumbnail.jpeg`, // Default image if no path
+  };
+});
+
+mixpanel.track('Product Viewed', {
+  distinct_id: req.ip,
+  productId: id,
+});
+    
+    res.status(200).json({ product:updatedProduct,images: imagesWithUrls });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving product", error: error.message || error  });
+  }
+};
+
+export const getSrno = async (req, res) => {
+  try {
+    const { filter } = req.params;
+    // const product =  await Product.find()
+    // .sort({ sr_no: -1 }) // Sort in descending order
+    // .limit(1)
+    // .select("sr_no"); // Sort by sno in ascending order
+    // res.status(200).json({product});
+    const product = await Product.findOne({ proType: filter })
+    .sort({ sr_no: -1 })
+    .select("sr_no");
+    if (!product) {
+      // If no product is found and filter is new, used, or spare, set sr_no to 1
+      if (["new", "used", "spare"].includes(filter)) {
+        return res.status(200).json({product:{ sr_no: 0 }});
+      } else {
+        return res.status(404).json({ message: "No product found with the specified filter" });
+      }
+    }  
+
+  res.status(200).json({ product });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving products", error });
+  }
+};
+// Get a single product by ID
 export const getBrandProducts = async (req, res) => {
   const { filter, id } = req.params;
 
@@ -337,8 +413,8 @@ try {
         ...product.toObject(),
         imagePath: correctImagePath
           ? `${correctImagePath}`
-          : "http://localhost:3000/uploads/thumbnail.jpeg", // Default placeholder
-          logo: correctLogoPath ? `${correctLogoPath}` : "http://localhost:3000/uploads/thumbnail.jpeg", // Default image if no imagePath
+          : `${process.env.url}/uploads/thumbnail.jpeg`, // Default placeholder
+          logo: correctLogoPath ? `${correctLogoPath}` : `${process.env.url}/uploads/thumbnail.jpeg`, // Default image if no imagePath
       };
     });
 
@@ -349,82 +425,6 @@ try {
   }
 };
 
-
-export const getSrno = async (req, res) => {
-  try {
-    const { filter } = req.params;
-    // const product =  await Product.find()
-    // .sort({ sr_no: -1 }) // Sort in descending order
-    // .limit(1)
-    // .select("sr_no"); // Sort by sno in ascending order
-    // res.status(200).json({product});
-    const product = await Product.findOne({ proType: filter })
-    .sort({ sr_no: -1 })
-    .select("sr_no");
-    if (!product) {
-      // If no product is found and filter is new, used, or spare, set sr_no to 1
-      if (["new", "used", "spare"].includes(filter)) {
-        return res.status(200).json({product:{ sr_no: 0 }});
-      } else {
-        return res.status(404).json({ message: "No product found with the specified filter" });
-      }
-    }  
-
-  res.status(200).json({ product });
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving products", error });
-  }
-};
-// Get a single product by ID
-export const getProductById = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const today = new Date();
-    const sixtyDaysAgo = new Date(today);
-    sixtyDaysAgo.setDate(today.getDate() - 60);
-
-    const product = await Product.findOne({
-      _id: id,
-      createdAt: { $gte: sixtyDaysAgo }, // Ensures the product was created in the last 60 days
-    }).populate("brandId","name");
-
-
-if (!product) {
-  return res.status(404).json({ message: "Product not found" });
-}
-
-// Process imagePath only after confirming the product is found
-const correctImagePath = product.imagePath ? product.imagePath.replace(/\\+/g, '/') : null;
-const correctLogoPath = product.logo ? product.logo.replace(/\\+/g, '/') : null;
-
-const updatedProduct = {
-  ...product._doc, // Extract all product properties
-  imagePath: correctImagePath ? `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default image if no imagePath
-  logo: correctLogoPath ? `https://bacr-2024-backend-production.up.railway.app/${correctLogoPath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default image if no imagePath
-};
-
-const productImages = await ProductImages.find({ product: id }).select('path -_id');
-
-// Process the images and adjust their paths
-const imagesWithUrls = productImages.map(image => {
-  const correctImagePath = image.path ? image.path.replace(/\\+/g, '/') : null;
-  return {
-    ...image._doc,  // Extract all image properties
-    path: correctImagePath ? `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}` : "https://bacr-2024-backend-production.up.railway.app/uploads/thumbnail.jpeg", // Default image if no path
-  };
-});
-
-mixpanel.track('Product Viewed', {
-  distinct_id: req.ip,
-  productId: id,
-});
-    
-    res.status(200).json({ product:updatedProduct,images: imagesWithUrls });
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving product", error: error.message || error  });
-  }
-};
 
 // Update product information by ID
 export const updateProduct = async (req, res) => {

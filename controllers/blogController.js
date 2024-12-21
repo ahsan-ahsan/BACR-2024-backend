@@ -230,7 +230,7 @@ export const getRelatedBlogs = async (req, res) => {
 
         return {
           ...blog.toObject(),
-          imagePath: `https://bacr-2024-backend-production.up.railway.app/${correctImagePath}`,
+          imagePath: `${correctImagePath}`,
           tags,
         };
       })
