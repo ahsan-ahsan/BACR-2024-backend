@@ -25,6 +25,19 @@ const AssetStorage = new CloudinaryStorage({
     ],
   },
 });
+const FooterStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "bacr/footercert",
+    resource_type: "auto",
+    allowed_formats: [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+    ],
+  },
+});
 const CareerStorage = new CloudinaryStorage({
     cloudinary,
     params: {
@@ -149,4 +162,4 @@ const BrandStorage = new CloudinaryStorage({
   });
 
 
-export { ProductStorage, cloudinary,BrandStorage,BlogStorage, CertificateStorage, AssetStorage,ProjectStorage,TeamStorage,JobStorage,CareerStorage };
+export { ProductStorage, cloudinary,BrandStorage,BlogStorage, CertificateStorage,FooterStorage, AssetStorage,ProjectStorage,TeamStorage,JobStorage,CareerStorage };

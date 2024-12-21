@@ -1,11 +1,13 @@
 import multer from 'multer';
 import SocialLinks from '../models/SocialLinks.js';
 import path from 'path';
+import { FooterStorage } from '../utils/fileUploder.js';
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/footercertificates"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/footercertificates"),
+//   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+// });
+const storage=FooterStorage;
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },  // 2MB limit
@@ -93,16 +95,16 @@ export const getSocialLinks = async (req, res) => {
       const correctedSocialLinks = sociallinks.map(link => ({
         ...link.toObject(), // Convert Mongoose object to plain object
         certificate1: link.certificate1 
-          ? `${process.env.url}/${link.certificate1.replace(/\\+/g, '/')}` 
+          ? `${link.certificate1.replace(/\\+/g, '/')}` 
           : null,
         certificate2: link.certificate2 
-          ? `${process.env.url}/${link.certificate2.replace(/\\+/g, '/')}` 
+          ? `${link.certificate2.replace(/\\+/g, '/')}` 
           : null,
         certificate3: link.certificate3 
-          ? `${process.env.url}/${link.certificate3.replace(/\\+/g, '/')}` 
+          ? `${link.certificate3.replace(/\\+/g, '/')}` 
           : null,
         certificate4: link.certificate4 
-          ? `${process.env.url}/${link.certificate4.replace(/\\+/g, '/')}` 
+          ? `${link.certificate4.replace(/\\+/g, '/')}` 
           : null,
       }));
       
