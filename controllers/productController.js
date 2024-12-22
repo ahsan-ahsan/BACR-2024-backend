@@ -462,19 +462,39 @@ export const updateProduct = async (req, res) => {
 
     try {
       if (sr_no) {
-        const existingProducts = await Product.find({ sr_no: { $gte: sr_no },proType: filter}).sort({ sr_no: -1 });
-          if(existingProducts.length > 0){
+        let existingProducts={}
+        let existingProductsb={}
+        if (sr_no) {
+          const product = await Product.findById(id);
+          if(product.sr_no > sr_no){
+            const sr_nob=sr_no-1;
+            existingProductsb = await Product.find({
+              sr_no: { $lt: product.sr_no, $gt: sr_nob },proType: filter
+            }).sort({ sr_no: 1 }); 
+          }else if (product.sr_no < sr_no){
+            existingProducts = await Product.find({   sr_no: { $gt: product.sr_no, $lte: sr_no } 
+            ,proType: filter}).sort({ sr_no: 1 }); // Sort in ascending order of sr_no
+          }
+    
+          if (existingProducts.length > 0) {
             for (const product of existingProducts) {
-        if (product.sr_no >= sr_no) {
-          // If the product's sr_no is greater than or equal to the new product's sr_no, increment it
-          await Product.findByIdAndUpdate(product._id, { sr_no: product.sr_no + 1 });
-        } else if (product.sr_no < sr_no) {
-          // If the product's sr_no is less than the new product's sr_no, decrement it
-          await Product.findByIdAndUpdate(product._id, { sr_no: product.sr_no - 1 });
-        }
-      //     await Product.findByIdAndUpdate(product._id, { sr_no: product.sr_no + 1 });
-        }
-        updateData.sr_no = sr_no;
+              
+                await Product.findByIdAndUpdate(product._id, { sr_no: product.sr_no - 1 ,proType: filter});
+               
+            }
+            
+            updateData.sr_no = sr_no; 
+          }
+            if (existingProductsb.length > 0) {
+              
+              for (const product of existingProductsb) {
+                
+                  await Product.findByIdAndUpdate(product._id, { sr_no: product.sr_no + 1 ,proType: filter});
+                 
+              }
+              
+              updateData.sr_no = sr_no; 
+            }
       }
       }
       const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });

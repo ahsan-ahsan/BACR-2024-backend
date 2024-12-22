@@ -190,22 +190,40 @@ export const updateProject = async (req, res) => {
   try {
     // Shift existing sr_no if a new sr_no is provided and causes a conflict
     const updateData = {};
-    if (sr_no) {
-      const existingProjects = await Project.find({ sr_no: { $gte: sr_no } }).sort({ sr_no: -1 });
-        if(existingProjects.length > 0){
-          for (const project of existingProjects) {
-      if (project.sr_no >= sr_no) {
-        // If the project's sr_no is greater than or equal to the new project's sr_no, increment it
-        await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
-      } else if (project.sr_no < sr_no) {
-        // If the project's sr_no is less than the new project's sr_no, decrement it
-        await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no - 1 });
+    let existingProjects={}
+        let existingProjectsb={}
+        if (sr_no) {
+          const project = await Project.findById(id);
+          if(project.sr_no > sr_no){
+            const sr_nob=sr_no-1;
+            existingProjectsb = await Project.find({
+              sr_no: { $lt: project.sr_no, $gt: sr_nob }
+            }).sort({ sr_no: 1 }); 
+          }else if (project.sr_no < sr_no){
+            existingProjects = await Project.find({   sr_no: { $gt: project.sr_no, $lte: sr_no } 
+            }).sort({ sr_no: 1 }); // Sort in ascending order of sr_no
+          }
+    
+          if (existingProjects.length > 0) {
+            for (const project of existingProjects) {
+              
+                await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no - 1 });
+               
+            }
+            
+            updateData.sr_no = sr_no; 
+          }
+            if (existingProjectsb.length > 0) {
+              
+              for (const project of existingProjectsb) {
+                
+                  await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
+                 
+              }
+              
+              updateData.sr_no = sr_no; 
+            }
       }
-    //     await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
-      }
-      updateData.sr_no = sr_no;
-    }
-    }
     
     
     if(name) updateData.name=name;

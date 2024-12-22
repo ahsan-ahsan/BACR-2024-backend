@@ -5,13 +5,15 @@ import {
   getClientById,
   updateClient,
   getSrno,
-  deleteClient
+  deleteClient,
+  fetchClientSr
 } from "../controllers/clientController.js";
 
 const router = express.Router();
 
 router.post("/client", createClient);           // Create a new client
 router.get("/clients", getAllClients)
+router.get("/clientsr/:sr_no", fetchClientSr);          // Get all clients
 router.get("/client-getSrno", getSrno);          // Get all clients
 router.get("/client/:id", getClientById);       // Get a single client by ID
 router.put("/client/:id", updateClient);        // Update a client by ID

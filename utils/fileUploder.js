@@ -25,6 +25,7 @@ const AssetStorage = new CloudinaryStorage({
     ],
   },
 });
+
 const FooterStorage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -162,4 +163,4 @@ const BrandStorage = new CloudinaryStorage({
   });
 
 
-export { ProductStorage, cloudinary,BrandStorage,BlogStorage, CertificateStorage,FooterStorage, AssetStorage,ProjectStorage,TeamStorage,JobStorage,CareerStorage };
+export { ProductStorage, cloudinary,BrandStorage,BlogStorage, CertificateStorage, AssetStorage,ProjectStorage,TeamStorage,JobStorage,CareerStorage,FooterStorage };

@@ -84,7 +84,7 @@ export const createClient = async (req, res) => {
 // Get all clients
 export const getAllClients = async (req, res) => {
   try {
-    const clients = await Client.find();
+    const clients = await Client.find().sort({ sr_no: 1 });
     const clientsWithCorrectImagePath = clients.map(client => {
       const correctImagePath = client.imagePath ? client.imagePath.replace(/\\+/g, '/'): null;
       return {
@@ -125,6 +125,29 @@ export const getSrno = async (req, res) => {
 };
 
 // Update client information by ID
+export const fetchClientSr = async (req, res) => {
+  const { sr_no } = req.params;
+  const updateData = {};
+
+  if (sr_no) {
+    const existingClient = await Client.find({ sr_no: { $lt: sr_no } }).sort({ sr_no: -1 });
+      if(existingClient.length > 0){
+        for (const client of existingClient) {
+    if (client.sr_no >= sr_no) {
+      // If the project's sr_no is greater than or equal to the new project's sr_no, increment it
+      await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no + 1 });
+    } else if (client.sr_no < sr_no) {
+      // If the project's sr_no is less than the new project's sr_no, decrement it
+      await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no - 1 });
+    }
+  //     await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
+    }
+    updateData.sr_no = sr_no;
+  }
+  }
+  return res.status(404).json({ message: updateData });
+}
+
 export const updateClient = async (req, res) => {
   const { id } = req.params;
 
@@ -139,22 +162,43 @@ export const updateClient = async (req, res) => {
     const image = req.file;
 
     const updateData = {};
+    let existingClients={}
+    let existingClientsb={}
     if (sr_no) {
-      const existingClient = await Client.find({ sr_no: { $gte: sr_no } }).sort({ sr_no: -1 });
-        if(existingClient.length > 0){
-          for (const client of existingClient) {
-      if (client.sr_no >= sr_no) {
-        // If the project's sr_no is greater than or equal to the new project's sr_no, increment it
-        await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no + 1 });
-      } else if (client.sr_no < sr_no) {
-        // If the project's sr_no is less than the new project's sr_no, decrement it
-        await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no - 1 });
+      const client = await Client.findById(id);
+      if(client.sr_no > sr_no){
+        console.log("te1"+sr_no);
+        const sr_nob=sr_no-1;
+        existingClientsb = await Client.find({
+          sr_no: { $lt: client.sr_no, $gt: sr_nob }
+        }).sort({ sr_no: 1 }); 
+      }else if (client.sr_no < sr_no){
+        existingClients = await Client.find({   sr_no: { $gt: client.sr_no, $lte: sr_no } 
+        }).sort({ sr_no: 1 }); // Sort in ascending order of sr_no
       }
-    //     await Project.findByIdAndUpdate(project._id, { sr_no: project.sr_no + 1 });
+
+      if (existingClients.length > 0) {
+        for (const client of existingClients) {
+          
+            await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no - 1 });
+           
+        }
+        
+        updateData.sr_no = sr_no; 
       }
-      updateData.sr_no = sr_no;
-    }
-    }
+        if (existingClientsb.length > 0) {
+          
+          for (const client of existingClientsb) {
+            
+              await Client.findByIdAndUpdate(client._id, { sr_no: client.sr_no + 1 });
+             
+          }
+          
+          updateData.sr_no = sr_no; 
+        }
+  }
+
+  
     if (name) updateData.name = name;
     if (image) updateData.imagePath = image.path;
 

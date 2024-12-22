@@ -6,7 +6,7 @@ const projectSchema = new mongoose.Schema({
   client: { type: String, required: true },
   category: { type: String},
   description: { type: String, required: true },
-  sr_no: { type: Number, unique: true, required: true },
+  sr_no: { type: Number,  required: true },
   mainimage : { type: String},
   logo : { type: String},
 }, { timestamps: true });

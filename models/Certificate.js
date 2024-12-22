@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const certificateSchema = new mongoose.Schema({
-  sr_no: { type: Number, required: true, unique: true }, // Ensure unique serial numbers
+  sr_no: { type: Number, required: true }, // Ensure unique serial numbers
   imagePath: { type: String}, // Path to the image file
   name: { type: String, required: true }, // Path to the image file
   issuedBy: { type: String, required: true }, // Path to the image file

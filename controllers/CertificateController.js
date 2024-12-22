@@ -152,21 +152,41 @@ export const updateCertificate = async (req, res) => {
     const updateData = {};
 
     // Check if the new sr_no already exists for another certificate
-    if (sr_no) {
-      const existingCertificates = await Certificate.find({ sr_no: { $gte: sr_no } }).sort({ sr_no: -1 });
-      if(existingCertificates.length > 0){
-        for (const certificate of existingCertificates) {
-    if (certificate.sr_no >= sr_no) {
-      await Certificate.findByIdAndUpdate(certificate._id, { sr_no: certificate.sr_no + 1 });
-    } else if (certificate.sr_no < sr_no) {
-      // If the certificate's sr_no is less than the new certificate's sr_no, decrement it
-      await Certificate.findByIdAndUpdate(certificate._id, { sr_no: certificate.sr_no - 1 });
-    }
-
-    }
-    updateData.sr_no = sr_no;
-    }
-  }
+      let existingCertificates={}
+         let existingCertificatesb={}
+         if (sr_no) {
+           const certificate = await Certificate.findById(id);
+           if(certificate.sr_no > sr_no){
+             console.log("te1"+sr_no);
+             const sr_nob=sr_no-1;
+             existingCertificatesb = await Certificate.find({
+               sr_no: { $lt: certificate.sr_no, $gt: sr_nob }
+             }).sort({ sr_no: 1 }); 
+           }else if (certificate.sr_no < sr_no){
+             existingCertificates = await Certificate.find({   sr_no: { $gt: certificate.sr_no, $lte: sr_no } 
+             }).sort({ sr_no: 1 }); // Sort in ascending order of sr_no
+           }
+     
+           if (existingCertificates.length > 0) {
+             for (const certificate of existingCertificates) {
+               
+                 await Certificate.findByIdAndUpdate(certificate._id, { sr_no: certificate.sr_no - 1 });
+                
+             }
+             
+             updateData.sr_no = sr_no; 
+           }
+             if (existingCertificatesb.length > 0) {
+               
+               for (const certificate of existingCertificatesb) {
+                 
+                   await Certificate.findByIdAndUpdate(certificate._id, { sr_no: certificate.sr_no + 1 });
+                  
+               }
+               
+               updateData.sr_no = sr_no; 
+             }
+       }
     // Prepare update data
     if (sr_no) updateData.sr_no = sr_no;
     updateData.name = name;
@@ -181,7 +201,7 @@ export const updateCertificate = async (req, res) => {
     }
     res.status(200).json({ message: "Certificate updated successfully", updatedCertificate });
   } catch (error) {
-    res.status(500).json({ message: "Error updating certificate", error });
+    res.status(500).json({ message: "Error updating certificate"+ error.message });
   }
 });
 };
