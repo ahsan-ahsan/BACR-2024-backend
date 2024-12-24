@@ -1,5 +1,5 @@
 import express from "express";
-import { getModules, createModule, updateModule, deleteModule } from "../controllers/ModuleController.js";
+import { getModules, createModule } from "../controllers/ModuleController.js";
 
 const router = express.Router();
 
@@ -8,6 +8,6 @@ router.get("/modules", getModules);
 
 // Route to create a new module
 router.post("/module", createModule);
-router.put('/module/:id', updateModule); // Update a module by ID
-router.delete('/module/:id', deleteModule);
+// router.put('/module/:id', updateModule); // Update a module by ID
+// router.delete('/module/:id', deleteModule);
 export default router;
