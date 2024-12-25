@@ -27,4 +27,4 @@ export const getRoles = async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: 'Error saving contact message', error: error.message || error  });
     }
-  }; 
+  };
