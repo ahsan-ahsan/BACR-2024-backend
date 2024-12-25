@@ -30,7 +30,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 2MB limit
   fileFilter: (req, file, cb) => {
-    const isImage = /jpeg|jpg|png/.test(file.mimetype);
+    const isImage = /jpeg|jpg|png|xlsx|csv/.test(file.mimetype);
     const isExcelFile = file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     const isCSVFile = file.mimetype === "text/csv";
     if ((file.fieldname === "image" && isImage) || (file.fieldname === "email" && (isExcelFile || isCSVFile))) {
