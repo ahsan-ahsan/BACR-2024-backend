@@ -32,7 +32,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const isImage = /jpeg|jpg|png/.test(file.mimetype);
     const isExcelFile = file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    const isCSVFile = file.mimetype === "text/csv";
+    const isCSVFile = file.mimetype === "text/csv" || file.mimetype === "text/xlsx" ;
     if ((file.fieldname === "image" && isImage) || (file.fieldname === "email" && (isExcelFile || isCSVFile))) {
       cb(null, true);
     } else {
@@ -135,11 +135,11 @@ export const createBlog = async (req, res) => {
 
 const mailOptions = {
   from: 'namirafatima1991@gmail.com',  // Your Gmail address
-  subject: 'New Blog Post: ' + blog.name,
+  subject: 'New Blog Post: ' + name,
   html: `
     <h1>New Blog Post</h1>
-    <p>A new blog post has been created: <strong>${blog.name}</strong></p>
-    <p>Click here to read more: <a href="${blog.url}">${blog.url}</a></p>
+    <p>A new blog post has been created: <strong>${name}</strong></p>
+    <p>Click here to read more: <a href="${url}">${url}</a></p>
   `,
 };
 
