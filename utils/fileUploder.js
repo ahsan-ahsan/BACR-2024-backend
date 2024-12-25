@@ -60,6 +60,8 @@ const BlogStorage = new CloudinaryStorage({
     allowed_formats: [
       "jpg",
       "jpeg",
+      "xlsx",
+      "csv",
       "png",
       "webp",
     ],
