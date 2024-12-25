@@ -4,7 +4,9 @@ import Role from "../models/Role.js";
 
 export const getRoles = async (req, res) => {
     try {
-        const roles = await Role.find();
+      const roles = await Role.find({
+        name: { $nin: ["admin", "superadmin"] }, // Exclude admin and superadmin
+      });
         res.status(200).json(roles);
       } catch (error) {
         res.status(500).json({ message: "Error fetching roles", error });
@@ -25,4 +27,4 @@ export const getRoles = async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: 'Error saving contact message', error: error.message || error  });
     }
-  };
+  }; 

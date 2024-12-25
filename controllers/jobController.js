@@ -108,36 +108,44 @@ export const addCareer = async (req, res) => {
 
 
 export const createJob = async (req, res) => {
-  const { title, location, desc,responsb,type,department,deadline,designation,requir,status,email } = req.body;
+  const { title, location,skills, desc,responsb,type,department,deadline,designation,requir,status,email } = req.body;
   
   
   if (title =="") {
     return res.status(400).json({ message: 'Title is required' });
   }
-  let RespabString = "";
-      if (responsb) {
-        const RespabkeyArray = Array.isArray(responsb)
-          ? responsb
-          : responsb.split(",").map((respabb) => respabb.trim());
-          RespabString = RespabkeyArray.join(",");
+  let SkillsString = "";
+      if (skills) {
+        const SkillskeyArray = Array.isArray(skills)
+          ? skills
+          : skills.split(",").map((skill) => skill.trim());
+          SkillsString = SkillskeyArray.join(",");
         }
-  let RequirString = "";
-      if (requir) {
-        const RequirkeyArray = Array.isArray(requir)
-          ? requir
-          : requir.split(",").map((requirb) => requirb.trim());
-          RequirString = RequirkeyArray.join(",");
-        }
+  // let RespabString = "";
+  //     if (responsb) {
+  //       const RespabkeyArray = Array.isArray(responsb)
+  //         ? responsb
+  //         : responsb.split(",").map((respabb) => respabb.trim());
+  //         RespabString = RespabkeyArray.join(",");
+  //       }
+  // let RequirString = "";
+  //     if (requir) {
+  //       const RequirkeyArray = Array.isArray(requir)
+  //         ? requir
+  //         : requir.split(",").map((requirb) => requirb.trim());
+  //         RequirString = RequirkeyArray.join(",");
+  //       }
   const jobData = {
     title,
     location,
     desc,
-    responsb:RespabString,
+    responsb,
     deadline,
     department,
+    skills:SkillsString,
     designation,
     type,
-    requirements:RequirString,
+    requirements:requir,
     status,
     email
   };
@@ -280,34 +288,35 @@ export const getJobByIdFront = async (req, res) => {
 
 // Update a Job by ID
 export const updateJob = async (req, res) => {
-  const { title, location, desc,responsb,type,deadline,department,designation,requir,category,status,email } = req.body;
+  const { title, location, desc,responsb,type,skills,deadline,department,designation,requir,category,status,email } = req.body;
 
   try {
     const job = await Job.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
-    let RespabString = "";
-      if (responsb) {
-        const RespabkeyArray = Array.isArray(responsb)
-          ? responsb
-          : responsb.split(",").map((respabb) => respabb.trim());
-          RespabString = RespabkeyArray.join(",");
+    let SkillsString = "";
+      if (skills) {
+        const SkillskeyArray = Array.isArray(skills)
+          ? skills
+          : skills.split(",").map((skill) => skill.trim());
+          SkillsString = SkillskeyArray.join(",");
         }
-        let RequirString = "";
-        if (requir) {
-          const RequirkeyArray = Array.isArray(requir)
-            ? requir
-            : requir.split(",").map((requirb) => requirb.trim());
-            RequirString = RequirkeyArray.join(",");
-          }
+    //     let RequirString = "";
+    //     if (requir) {
+    //       const RequirkeyArray = Array.isArray(requir)
+    //         ? requir
+    //         : requir.split(",").map((requirb) => requirb.trim());
+    //         RequirString = RequirkeyArray.join(",");
+    //       }
     if (title) job.title = title;
     if (email) job.email = email;
     if (location) job.location = location;
     if (desc) job.desc = desc;
     if (type) job.type = type;
-    if (responsb) job.responsb = RespabString;
-    if (requir) job.requirements = RequirString;
+    if (skills) job.skills = SkillsString;
+    if (responsb) job.responsb = responsb;
+    if (requir) job.requirements = requir;
     if (deadline) job.deadline = deadline;
     if (designation) job.designation = designation;
     if (department) job.department = department;

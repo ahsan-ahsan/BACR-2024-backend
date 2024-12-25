@@ -9,6 +9,7 @@ const teamSchema = new mongoose.Schema({
     enum: ['fulltime', 'parttime'], 
   },
   responsb: { type: String},
+  skills: { type: String},
   designation: { type: String},
   requirements: { type: String },
   deadline: { type: String, required: true },

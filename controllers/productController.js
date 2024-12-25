@@ -296,7 +296,7 @@ export const getProductById = async (req, res) => {
     const product = await Product.findOne({
       _id: id,
       createdAt: { $gte: sixtyDaysAgo }, // Ensures the product was created in the last 60 days
-    }).populate("brandId","name");
+    }).populate("brandId","name image");
 
 
 if (!product) {
@@ -305,7 +305,7 @@ if (!product) {
 
 // Process imagePath only after confirming the product is found
 const correctImagePath = product.imagePath ? product.imagePath.replace(/\\+/g, '/') : null;
-const correctLogoPath = product.logo ? product.logo.replace(/\\+/g, '/') : null;
+const correctLogoPath = product.brandId.image ? product.brandId.image.replace(/\\+/g, '/') : null;
 
 const updatedProduct = {
   ...product._doc, // Extract all product properties

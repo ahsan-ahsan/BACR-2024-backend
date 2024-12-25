@@ -40,6 +40,9 @@ export const addSocialLinks = async (req, res) => {
     }
     const { whatsapp, facebook,whatsappno,youtube,telephone1,telephone2,email, instagram, linkedin,address1head,address2head,address3head,address4head,address1,address2,address3,address4,address1url,address2url,address3url,address4url } = req.body;
     const { files } = req;
+    console.log(telephone1);
+    console.log(whatsappno);
+    
     try {
       // Check if a record already exists
       let socialLinks = await SocialLinks.findOne();
