@@ -11,19 +11,19 @@ import schedule from "node-schedule";
 import xml2js from 'xml2js';
 import { BlogStorage } from "../utils/fileUploder.js";
 
-// const storage =BlogStorage;
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (file.fieldname === 'image') {
-      cb(null, 'uploads/blogs'); // Save images in blogs folder
-    } else if (file.fieldname === 'email') {
-      cb(null, 'uploads/temp'); // Save Excel files in temporary storage
-    }
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
-  },
-});
+const storage =BlogStorage;
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     if (file.fieldname === 'image') {
+//       cb(null, 'uploads/blogs'); // Save images in blogs folder
+//     } else if (file.fieldname === 'email') {
+//       cb(null, 'uploads/temp'); // Save Excel files in temporary storage
+//     }
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+//   },
+// });
 // const emailStorage = multer.memoryStorage();
 
 // const storage = multer.diskStorage({
@@ -45,17 +45,23 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 2MB limit
   fileFilter: (req, file, cb) => {
     const isImage = /jpeg|jpg|png/.test(file.mimetype);
-    const isExcelFile = file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    const isCSVFile = file.mimetype === "text/csv";
-    if ((file.fieldname === "image" && isImage) || (file.fieldname === "email" && (isExcelFile || isCSVFile))) {
+    // const isExcelFile = file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    // const isCSVFile = file.mimetype === "text/csv";
+    // if ((file.fieldname === "image" && isImage) || (file.fieldname === "email" && (isExcelFile || isCSVFile))) {
+    //   cb(null, true);
+    // } else {
+    //   cb(new Error("Only images (JPEG, JPG, PNG) and Excel files (XLSX) are allowed"));
+    // }
+    if ((file.fieldname === "image" && isImage)) {
       cb(null, true);
     } else {
       cb(new Error("Only images (JPEG, JPG, PNG) and Excel files (XLSX) are allowed"));
     }
+    
   },
 }).fields([
   { name: "image", maxCount: 1 }, // For the blog image
-  { name: "email", maxCount: 1 }, // For the Excel file with emails
+  // { name: "email", maxCount: 1 }, // For the Excel file with emails
 ]);
 
 
@@ -73,7 +79,7 @@ export const createBlog = async (req, res) => {
       return res.status(400).json({ message: "Error: " + err.message });
     }
     
-    let { name,url, description,categoryId,tags, focus_keys,alt_text,caption_img,meta_desc,meta_title,can_url,status,schedule_time,soc_tags,excerpt } = req.body;
+    let { name,url, description,categoryId,tags,emails, focus_keys,alt_text,caption_img,meta_desc,meta_title,can_url,status,schedule_time,soc_tags,excerpt } = req.body;
     const { files } = req;
     const image = files?.image[0];
     
@@ -121,19 +127,19 @@ export const createBlog = async (req, res) => {
   
         emailString = emailArray.join(","); // Save as comma-separated string
       }
-      const emails = await extractEmailsFromExcel(excelFile.path);
-      if(files.email){
-       excelFile = files?.email[0];
+      // const email = await extractEmailsFromExcel(excelFile.path);
+      // if(files.email){
+      //  excelFile = files?.email[0];
     
-      const excelBuffer = fs.readFileSync(excelFile?.path);
+      // const excelBuffer = fs.readFileSync(excelFile?.path);
       // const excelBuffer = excelFile?.path;
-      const { validEmails, invalidEmails } = extractEmailsFromExcel(excelBuffer);
+      // const { validEmails, invalidEmails } = extractEmailsFromExcel(excelBuffer);
 
       
-      if (validEmails.length === 0) {
-        return res.status(400).json({ message: "No valid emails found in the Excel file." });
-      }
-       emailString = validEmails.join(',');
+      // if (validEmails.length === 0) {
+      //   return res.status(400).json({ message: "No valid emails found in the Excel file." });
+      // }
+      //  emailString = validEmails.join(',');
              
 //  // Send email notifications to each email in the list
  const transporter = nodemailer.createTransport({
@@ -151,11 +157,11 @@ export const createBlog = async (req, res) => {
 
 const mailOptions = {
   from: 'info@bacr.com.pk',  // Your Gmail address
-  subject: 'New Blog Post: ' + blog.name,
+  subject: 'New Blog Post: ' + name,
   html: `
     <h1>New Blog Post</h1>
-    <p>A new blog post has been created: <strong>${blog.name}</strong></p>
-    <p>Click here to read more: <a href="${blog.url}">${blog.url}</a></p>
+    <p>A new blog post has been created: <strong>${name}</strong></p>
+    <p>Click here to read more: <a href="${url}">${url}</a></p>
   `,
 };
 
@@ -167,7 +173,7 @@ const emailPromises = emailString.split(',').map((email) => {
       await Promise.all(emailPromises);
       // fs.unlinkSync(excelFile.path);
 
-    }
+    // }
     try {
       const blog = new Blog({
         name,
@@ -320,6 +326,32 @@ export const getAllBlogs = async (req, res) => {
   }
 };
 
+
+export const getAllBlogsBack = async (req, res) => {
+  try {
+    const blogs = await Blog.find()
+    .populate('categoryId', 'name')
+    .sort({ createdAt: -1 });
+    const blogsWithDetails = await Promise.all(
+      blogs.map(async (blog) => {
+        const correctImagePath = blog.imagePath.replace(/\\+/g, '/');
+        
+        // Fetch associated tags using BlogTag bridge
+        const blogTags = await BlogTag.find({ blogId: blog._id }).populate('tagId');
+        const tags = blogTags.map((bt) => bt.tagId); // Extract the tags
+        
+        return {
+          ...blog.toObject(),
+          imagePath: `${correctImagePath}`,
+          tags, // Include tags in the response          
+        };
+      })
+    );
+    res.status(200).json({ blogs:blogsWithDetails});
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving blogs "+error.message });
+  }
+};
 // Get a single blog by ID
 export const getBlogById = async (req, res) => {
   const { id } = req.params;
@@ -359,7 +391,7 @@ export const updateBlog = async (req, res) => {
       return res.status(400).json({ message: "Error: " + err.message });
     }
 
-    let { name,url, description,categoryId,tags,focus_keys,alt_text,caption_img,meta_desc,meta_title,can_url,status,schedule_time,soc_tags,excerpt } = req.body;
+    let { name,url, description,emails,categoryId,tags,focus_keys,alt_text,caption_img,meta_desc,meta_title,can_url,status,schedule_time,soc_tags,excerpt } = req.body;
     const { files } = req;
     
     let imagePath = '';
@@ -367,18 +399,18 @@ export const updateBlog = async (req, res) => {
       const image = files.image[0];
       imagePath = image.path;
     }
-    let emailString = '';
-    let excelFile = '';
-    if (files && files.email && files.email[0]) {
-     excelFile = files.email[0];
-    const excelBuffer = fs.readFileSync(excelFile.path);
-    const { validEmails, invalidEmails } = extractEmailsFromExcel(excelBuffer);
-    if (validEmails.length === 0) {
-      return res.status(400).json({ message: "No valid emails found in the Excel file." });
-    }
+    // let emailString = '';
+    // let excelFile = '';
+  //   if (files && files.email && files.email[0]) {
+  //    excelFile = files.email[0];
+  //   const excelBuffer = fs.readFileSync(excelFile.path);
+  //   const { validEmails, invalidEmails } = extractEmailsFromExcel(excelBuffer);
+  //   if (validEmails.length === 0) {
+  //     return res.status(400).json({ message: "No valid emails found in the Excel file." });
+  //   }
     
-    emailString = validEmails.join(',');
-  }
+  //   emailString = validEmails.join(',');
+  // }
 
     const updateData = {};
     if (name) updateData.name = name;
@@ -400,6 +432,13 @@ export const updateBlog = async (req, res) => {
         : focus_keys.split(",").map((focus_key) => focus_key.trim());
         focuskeyString = focuskeyArray.join(",");
       }
+    let emailsString = "";
+    if (emails) {
+      const emailsArray = Array.isArray(emails)
+        ? emails
+        : emails.split(",").map((email) => email.trim());
+        emailsString = emailsArray.join(",");
+      }
     let socTagsString = "";
     if (soc_tags) {
       const soctagskeyArray = Array.isArray(soc_tags)
@@ -409,7 +448,7 @@ export const updateBlog = async (req, res) => {
       }
 
     
-    if (emailString) updateData.emails = emailString;
+    if (emailsString) updateData.emails = emailsString;
     if (soc_tags) updateData.soc_tags = socTagsString;
     if (focus_keys) updateData.focus_keys = focuskeyString;
     if (meta_desc) updateData.meta_desc = meta_desc;
@@ -446,12 +485,12 @@ export const updateBlog = async (req, res) => {
         await Promise.all(blogTagPromises);
       }
       await generateSitemap();
-      if(excelFile){
-      fs.unlinkSync(excelFile.path);
-    }
+    //   if(excelFile){
+    //   fs.unlinkSync(excelFile.path);
+    // }
       res.status(200).json({ message: "Blog updated successfully", updatedBlog });    
     } catch (error) {
-      res.status(500).json({ message: "Error updating blog", error });
+      res.status(500).json({ message: "Error updating blog"+ error.message });
     }
   });
 };
