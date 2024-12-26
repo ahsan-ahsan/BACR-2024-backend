@@ -11,11 +11,25 @@ import schedule from "node-schedule";
 import xml2js from 'xml2js';
 import { BlogStorage } from "../utils/fileUploder.js";
 
-const storage =BlogStorage;
+// const storage =BlogStorage;
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (file.fieldname === 'image') {
+      cb(null, 'uploads/blogs'); // Save images in blogs folder
+    } else if (file.fieldname === 'email') {
+      cb(null, 'uploads/temp'); // Save Excel files in temporary storage
+    }
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+  },
+});
+// const emailStorage = multer.memoryStorage();
+
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => {
 //     if (file.fieldname === 'image') {
-//       cb(null, 'uploads/blogs'); // Save images in blogs folder
+//       BlogStorage
 //     } else if (file.fieldname === 'email') {
 //       cb(null, 'uploads/temp'); // Save Excel files in temporary storage
 //     }
@@ -32,7 +46,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const isImage = /jpeg|jpg|png/.test(file.mimetype);
     const isExcelFile = file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    const isCSVFile = file.mimetype === "text/csv" || file.mimetype === "text/xlsx" ;
+    const isCSVFile = file.mimetype === "text/csv";
     if ((file.fieldname === "image" && isImage) || (file.fieldname === "email" && (isExcelFile || isCSVFile))) {
       cb(null, true);
     } else {
@@ -89,28 +103,30 @@ export const createBlog = async (req, res) => {
           socTagsString = soctagskeyArray.join(",");
         }
       
-      // let emailString = "";
-      // if (emails) {
-      //   const emailArray = Array.isArray(emails)
-      //     ? emails
-      //     : emails.split(",").map((email) => email.trim());
+      let emailString = "";
+      let excelFile;
+
+      if (emails) {
+        const emailArray = Array.isArray(emails)
+          ? emails
+          : emails.split(",").map((email) => email.trim());
         
-      //   // Validate email format
-      //   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      //   const invalidEmails = emailArray.filter((email) => !isValidEmail(email));
+        // Validate email format
+        const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const invalidEmails = emailArray.filter((email) => !isValidEmail(email));
   
-      //   if (invalidEmails.length > 0) {
-      //     return res.status(400).json({ message: `Invalid emails: ${invalidEmails.join(", ")}` });
-      //   }
+        if (invalidEmails.length > 0) {
+          return res.status(400).json({ message: `Invalid emails: ${invalidEmails.join(", ")}` });
+        }
   
-      //   emailString = emailArray.join(","); // Save as comma-separated string
-      // }
-      // const emails = await extractEmailsFromExcel(excelFile.path);
-      let excelFile,emailString;
+        emailString = emailArray.join(","); // Save as comma-separated string
+      }
+      const emails = await extractEmailsFromExcel(excelFile.path);
       if(files.email){
        excelFile = files?.email[0];
     
       const excelBuffer = fs.readFileSync(excelFile?.path);
+      // const excelBuffer = excelFile?.path;
       const { validEmails, invalidEmails } = extractEmailsFromExcel(excelBuffer);
 
       
@@ -134,12 +150,12 @@ export const createBlog = async (req, res) => {
 
 
 const mailOptions = {
-  from: 'namirafatima1991@gmail.com',  // Your Gmail address
-  subject: 'New Blog Post: ' + name,
+  from: 'info@bacr.com.pk',  // Your Gmail address
+  subject: 'New Blog Post: ' + blog.name,
   html: `
     <h1>New Blog Post</h1>
-    <p>A new blog post has been created: <strong>${name}</strong></p>
-    <p>Click here to read more: <a href="${url}">${url}</a></p>
+    <p>A new blog post has been created: <strong>${blog.name}</strong></p>
+    <p>Click here to read more: <a href="${blog.url}">${blog.url}</a></p>
   `,
 };
 
@@ -149,7 +165,7 @@ const emailPromises = emailString.split(',').map((email) => {
 });
       // Wait for all emails to be sent
       await Promise.all(emailPromises);
-      fs.unlinkSync(excelFile.path);
+      // fs.unlinkSync(excelFile.path);
 
     }
     try {
