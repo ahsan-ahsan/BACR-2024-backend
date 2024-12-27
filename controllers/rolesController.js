@@ -28,3 +28,17 @@ export const getRoles = async (req, res) => {
       res.status(500).json({ message: 'Error saving contact message', error: error.message || error  });
     }
   };
+
+  export const getRoleById = async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const role = await Role.findById(id);
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+      res.status(200).json({ role });
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving role", error });
+    }
+  };

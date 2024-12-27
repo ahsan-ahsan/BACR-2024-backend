@@ -77,10 +77,25 @@ export const signUp = async (req, res) => {
   };
   export const getAllusers = async (req, res) => {
     try {
-      const users = await User.find(); // Fetch all users
+      const users = await User.aggregate([
+        { $lookup: {
+            from: 'roles',  // Ensure 'roles' is the correct collection name for your roles
+            localField: 'role',  // The field in the User document that references the Role
+            foreignField: '_id',  // The field in the Role document that is referenced
+            as: 'roleDetails'  // The alias for the populated role data
+          }
+        },
+        { $unwind: '$roleDetails' },  // Unwind the roleDetails array to work with the individual role
+        { $match: {
+            'roleDetails.name': { $nin: ['superadmin', 'admin'] }  // Filter out 'superadmin' and 'admin'
+          }
+        }
+      ]);
+      
+
       res.status(200).json({ users });
     } catch (error) {
       console.error(error); // Log error for detailed debugging
-      res.status(500).json({ message: "Error retrieving users", error });
-    }
-  };
+      res.status(500).json({ message: "Error retrieving users", error });
+    }
+  };
