@@ -33,11 +33,21 @@ export const getRoles = async (req, res) => {
     const { id } = req.params;
   
     try {
-      const role = await Role.findById(id);
+      const role = await Role.findById(id).populate("modules");
       if (!role) {
         return res.status(404).json({ message: "Role not found" });
       }
-      res.status(200).json({ role });
+      // const moduleIds = role.modules.map(module => module._id.toString());
+      
+      const uniqueModules = [...new Set(role.modules.map(module => module._id.toString()))];
+
+      res.status(200).json({
+        role: {
+          ...role._doc, // Include the rest of the role data
+          modules: uniqueModules, // Replace modules with unique IDs
+        },
+      });
+
     } catch (error) {
       res.status(500).json({ message: "Error retrieving role", error });
     }

@@ -33,7 +33,10 @@ router.put('/role/:roleId/add-modules', async (req, res) => {
     }
 
     // Add the modules to the role if they aren't already present
-    role.modules = [...new Set([...role.modules, ...moduleIds])];
+    role.modules = role.modules.filter(moduleId => moduleIds.includes(moduleId.toString()));
+
+    // Add the new modules to the role if they aren't already present
+    role.modules = [...new Set([...role.modules.map(m => m.toString()), ...moduleIds])];
 
     // Save the updated role
     await role.save();
