@@ -2,7 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>http://localhost:3000/api/blog/676dab8b8e3c33d376259808</loc>
-    <lastmod>2024-12-26T19:26:18.263Z</lastmod>
+    <lastmod>2024-12-31T20:00:48.605Z</lastmod>
+    <priority>1</priority>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>http://localhost:3000/api/blog/67744f295a7656cd9cb14b74</loc>
+    <lastmod>2024-12-31T20:10:52.667Z</lastmod>
     <priority>1</priority>
     <changefreq>daily</changefreq>
   </url>

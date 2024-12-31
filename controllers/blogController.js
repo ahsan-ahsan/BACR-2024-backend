@@ -10,6 +10,7 @@ import nodemailer from "nodemailer";
 import schedule from "node-schedule";
 import xml2js from 'xml2js';
 import { BlogStorage } from "../utils/fileUploder.js";
+import { identitytoolkit_v3 } from "googleapis";
 
 const storage =BlogStorage;
 // const storage = multer.diskStorage({
@@ -91,7 +92,7 @@ export const createBlog = async (req, res) => {
       schedule_time='';
     }
     if(!url ){
-      url=process.env.url+'/blog/'+name;
+      url='/blog/'+name;
     }
       // Validate and process emails
       let focuskeyString = "";
@@ -155,29 +156,21 @@ export const createBlog = async (req, res) => {
 
 
 
-const mailOptions = {
-  from: 'info@bacr.com.pk',  // Your Gmail address
-  subject: 'New Blog Post: ' + name,
-  html: `
-    <h1>New Blog Post</h1>
-    <p>A new blog post has been created: <strong>${name}</strong></p>
-    <p>Click here to read more: <a href="${url}">${url}</a></p>
-  `,
-};
-
-// Send email to each recipient
-const emailPromises = emailString.split(',').map((email) => {
-  return transporter.sendMail({ ...mailOptions, to: email });
-});
-      // Wait for all emails to be sent
-      await Promise.all(emailPromises);
       // fs.unlinkSync(excelFile.path);
 
     // }
     try {
+      let uniqueUrl = url;
+      let suffix = 1; // Start suffix from 1
+
+      // Check for existing URLs and generate a new one if necessary
+      while (await Blog.findOne({ url: uniqueUrl })) {
+        uniqueUrl = `${url}-${suffix}`;
+        suffix++;
+      }
       const blog = new Blog({
         name,
-        url,
+        url:uniqueUrl,
         categoryId,
         description,
         imagePath: image?.path ? image?.path :"",
@@ -196,6 +189,24 @@ const emailPromises = emailString.split(',').map((email) => {
 
       await blog.save();
 
+      if(emails){
+      const mailOptions = {
+        from: 'info@bacr.com.pk',  // Your Gmail address
+        subject: 'New Blog Post: ' + name,
+        html: `
+          <h1>New Blog Post</h1>
+          <p>A new blog post has been created: <strong>${name}</strong></p>
+          <p>Click here to read more: <a href="${uniqueUrl}">${uniqueUrl}</a></p>
+        `,
+        };
+      
+      // Send email to each recipient
+      const emailPromises = emailString.split(',').map((email) => {
+        return transporter.sendMail({ ...mailOptions, to: email });
+      });
+            // Wait for all emails to be sent
+            await Promise.all(emailPromises);
+    }
       // Process tags (assuming `tags` is a comma-separated string or an array of tag IDs)
       if(tags){
       const tagArray = Array.isArray(tags) ? tags : tags.split(",").map(tag => tag.trim());
@@ -262,7 +273,7 @@ export const getRelatedBlogs = async (req, res) => {
     const strategies = blogsWithDetails.map((blog) => ({
       id: blog._id,
       title: blog.name,
-      url: `/blog/${blog._id}`,
+      url: `/blog-detail/${blog.url}`,
       imagePath: blog.imagePath,
       excerpt: blog.excerpt,
     }));
@@ -357,7 +368,7 @@ export const getBlogById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const blogs = await Blog.findById(id).populate('categoryId', 'name');
+    const blogs = await Blog.findOne({url:id}).populate('categoryId', 'name');
     if (!blogs) {
       return res.status(404).json({ message: 'Blog not found' });
     }
@@ -376,7 +387,7 @@ export const getBlogById = async (req, res) => {
     
     res.status(200).json({ blog: blogWithDetails });
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving blog", error });
+    res.status(500).json({ message: "Error retrieving blog "+error.message  });
   }
 };
 
@@ -410,14 +421,20 @@ export const updateBlog = async (req, res) => {
   //   }
     
   //   emailString = validEmails.join(',');
-  // }
-
+  // }  
+    let uniqueUrl = url;
+    let suffix = 1; // Start suffix from 1
+    // Check for existing URLs and generate a new one if necessary
+    while (await Blog.findOne({ url: uniqueUrl })) {
+      uniqueUrl = `${url}-${suffix}`;
+      suffix++;
+    }
     const updateData = {};
     if (name) updateData.name = name;
     if(!url ){
-      updateData.url=process.env.url+'/blog/'+name;
+      updateData.url=name;
     }else{
-      updateData.url = url;
+      updateData.url = uniqueUrl;
     }
     if (description) updateData.description = description;
     if (imagePath) updateData.imagePath = imagePath;
