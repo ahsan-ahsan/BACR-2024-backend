@@ -248,7 +248,8 @@ export const getRelatedBlogs = async (req, res) => {
 
   try {
     // Fetch related blogs excluding the current blog
-    const blogs = await Blog.find({ _id: { $ne: id } }) // Use id from params
+    const blogs = await Blog.find({ _id: { $ne: id } ,
+    status: "publish"}) // Use id from params
       .populate('categoryId', 'name')
       .limit(5);
 
@@ -291,18 +292,26 @@ export const getRelatedBlogs = async (req, res) => {
   }
 };
 
-
 const schedulePost = (postId, scheduleTime) => {
   schedule.scheduleJob(new Date(scheduleTime), async () => {
     await Blog.findByIdAndUpdate(postId, {status:"published"}, { new: true });
   });
 };
 
+export const getAllBlogsUrl = async (req, res) => {
+  try {
+    const blogs = await Blog.find({ status: "publish" }).select("url");
+    res.status(200).json({ blogs:blogs });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving blogs "+error.message });
+  }
+};
+
 export const getAllBlogs = async (req, res) => {
   const { page = 1, limit = 10 } = req.query; 
   try {
     const skip = (page - 1) * limit;
-    const blogs = await Blog.find()
+    const blogs = await Blog.find({ status: "publish" })
     .populate('categoryId', 'name')
     .sort({ createdAt: -1 }) // Optional: Sort by latest blogs
     .skip(skip) // Skip blogs for pagination
@@ -340,7 +349,7 @@ export const getAllBlogs = async (req, res) => {
 
 export const getAllBlogsBack = async (req, res) => {
   try {
-    const blogs = await Blog.find()
+    const blogs = await Blog.find({ status: "publish" }) 
     .populate('categoryId', 'name')
     .sort({ createdAt: -1 });
     const blogsWithDetails = await Promise.all(
@@ -425,7 +434,7 @@ export const updateBlog = async (req, res) => {
     let uniqueUrl = url;
     let suffix = 1; // Start suffix from 1
     // Check for existing URLs and generate a new one if necessary
-    while (await Blog.findOne({ url: uniqueUrl })) {
+    while (await Blog.findOne({ url: uniqueUrl,_id: { $ne: id } })) {
       uniqueUrl = `${url}-${suffix}`;
       suffix++;
     }
