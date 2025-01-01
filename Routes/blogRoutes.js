@@ -20,5 +20,5 @@ router.get("/blog/:id", getBlogById);       // Get a single blog by ID
 router.get("/related-blogs/:id", getRelatedBlogs);       // Get a single blog by ID
 router.put("/blog/:id", updateBlog);        // Update a blog by ID
 router.delete("/blog/:id", deleteBlog);     // Delete a blog by ID
-
+// jjjjj
 export default router;
